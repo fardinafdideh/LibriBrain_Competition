@@ -13,10 +13,12 @@ The model's primary objective in the [LibriBrain Competition 2025](https://neura
 2) [Phoneme Classification](https://neural-processing-lab.github.io/2025-libribrain-competition/tracks/): 39 Phonems (multi-class task).
 ![Description of GIF](https://neural-processing-lab.github.io/2025-libribrain-competition/images/sherlock4.gif)
 
-
 ## Competition Leaderboard 
 1) Rank 27/53 in [Speech Detection](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/speech_detection_standard/)
 2) Rank 18/30 in [Phoneme Classification](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/phoneme_classification_standard/)
+
+## Architecture Diagram
+![](/fig/ArchitectureDiagram_MultiScale.png)
 
 ## Performance Monitoring 
 Performance logs on [Weights & Biases](https://wandb.ai/fardinafdideh-ki/projects) (an AI developer platform):
@@ -28,9 +30,6 @@ Performance logs on [Weights & Biases](https://wandb.ai/fardinafdideh-ki/project
 ### [Phoneme Classification](https://wandb.ai/fardinafdideh-ki/libribrain-phoneme-trainTestWithVal_ChannelSpatialAttentionReductionKernelSize/workspace?nw=nwuserfardinafdideh)
 ![](/fig/PhonemeClassifPerf.png)
 ![](/fig/PhonemeClassifConfusion.png)
-
-## Architecture Diagram
-![](/fig/ArchitectureDiagram_MultiScale.png)
 
 ## Key Components
 
