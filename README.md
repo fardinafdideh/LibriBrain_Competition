@@ -1,7 +1,7 @@
 # Fused Multi-Branch Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention for Language Decoding from MEG: Application for BCI Systems
 
 ## Overview
-![Description of GIF](https://neural-processing-lab.github.io/2025-libribrain-competition/images/sherlock1.gif)
+![](https://neural-processing-lab.github.io/2025-libribrain-competition/images/sherlock1.gif)
 
 This repository details the implementation of a hybrid Deep Learning (DL) architecture designed for Magnetoencephalography (MEG) signal processing and decoding in the [LibriBrain Competition 2025](https://neural-processing-lab.github.io/2025-libribrain-competition/).
 The model, referred to as the **Fused Multi-Path/Branch (temporal/spectral/temporal-spectral, ...) Residual Multi-Scale Convolutional Neural Network (CNN) Bidirectional Long Short-Term Memory (BiLSTM) Multi-Head with Dual Attention (spatial/temporal)**, is built for signal processing and decoding tasks with substantial societal impact on Brain-Computer Interface (BCI) systems.
