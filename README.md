@@ -17,8 +17,12 @@ The model's primary objective in the [LibriBrain Competition 2025](https://neura
 1) Rank 27/53 in [Speech Detection](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/speech_detection_standard/)
 2) Rank 18/30 in [Phoneme Classification](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/phoneme_classification_standard/)
 
-## Architecture Diagram
+## Architectures Diagrams
+### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention
 ![](/fig/ArchitectureDiagram_MultiScale.png)
+
+### Time-Freq Swin Transformer Encoder
+![](/fig/TimeFreqSwinTransformerEncoder.png)
 
 ## Performance Monitoring 
 Performance logs on [Weights & Biases](https://wandb.ai/fardinafdideh-ki/projects) (an AI developer platform):
