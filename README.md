@@ -183,7 +183,7 @@ Final Output:        [32, 1]
 ## Design Principles
 
 ### 1. **Multi-Scale Feature Extraction**
-Inspired by EEGNet and recent MEG research, parallel convolutions with different kernel sizes capture neural patterns at multiple temporal scales simultaneously.
+Inspired by [EEGNet](https://arxiv.org/abs/1611.08024) and recent MEG research, parallel convolutions with different kernel sizes capture neural patterns at multiple temporal scales simultaneously.
 
 ### 2. **Attention Mechanisms**
 - **Spatial**: Focus on relevant brain regions
@@ -213,11 +213,12 @@ Long skip connections enable:
 | `model_dim` | 128 | 64-256 | Hidden dimension size |
 | `dropout_rate` | 0.3 | 0.2-0.5 | Dropout probability |
 | `lstm_layers` | 2 | 2-3 | Number of LSTM layers |
-| `cnn_layers` | 3 | 3-4 | Number of CNN blocks (N) |
+| `cnn_layers` | 3 | 3-6 | Number of MS-CNN blocks (N) |
 | `kernel_sizes` | [5,13,25] | [[5,25], [5,13,25]] | Multi-scale kernel sizes |
-| `use_attention` | True | - | Enable spatial attention |
-| `use_residual` | True | - | Enable residual connections |
-| `bi_directional` | True | - | Bidirectional LSTM |
+| `use_attention` | True | [True, False] | Enable spatial attention |
+| `use_residual` | True | [True, False] | Enable residual connections |
+| `bi_directional` | True | [True, False] | Bidirectional LSTM |
+| `smoothing` | 0.1 | - | Label smoothing |
 
 ## Training Considerations
 
@@ -227,7 +228,7 @@ Binary Cross-Entropy (BCE) for speech/no-speech classification
 ### Optimizer
 Adam optimizer recommended with:
 - Learning rate: 1e-3 to 1e-4
-- Weight decay: 1e-5 to 1e-4
+- Weight decay: 1e-5 to 1e-2
 
 ### Learning Rate Schedule
 - Warmup for first 5-10% of training
@@ -240,7 +241,6 @@ Adam optimizer recommended with:
 - Time warping
 
 ## Performance Tips
-
 1. **Batch Size**: Start with 32-64, increase if memory permits
 2. **Gradient Clipping**: Use value of 1.0 to prevent exploding gradients
 3. **Mixed Precision**: Use FP16 training for speed (careful with numerical stability)
