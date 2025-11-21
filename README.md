@@ -19,9 +19,11 @@ The model's primary objective in the [LibriBrain Competition 2025](https://neura
 
 ## Architectures Diagrams
 ### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention
+This model combines residual multi-scale CNN with BiLSTM and multi-head dual attention mechanisms:
 ![](/fig/ArchitectureDiagram_MultiScale.png)
 
 ### Time-Freq Swin Transformer Encoder
+This model architecture combines adaptive time-frequency representations with pre-trained vision transformer encoders:
 ![](/fig/TimeFreqSwinTransformerEncoder.png)
 
 ## Performance Monitoring 
@@ -123,9 +125,25 @@ A critical skip connection that:
 - **Advantage**: More robust
 - **Operation**: `output = mean(sequence, dim=time)`
 
-### 7. **Classifier**
+### 7. **Spectrogram**
+Converts raw MEG signals into adaptive time-frequency representations using Superlets, which applies the Fractional Adaptive Superlet Transform (FASLT).
+#### Key Features
+- **Frequency range**: 0.5-30 Hz (covering delta, theta, alpha, and beta bands)
+- **Adaptive resolution**: Low frequencies (0.5-8 Hz) use high frequency resolution to capture slow oscillations, while high frequencies (8-30 Hz) use high temporal resolution for fast dynamics
+- **Multi-order analysis**: Orders 1-16 provide multi-scale spectral decomposition
+- **Output**: Log-power spectrograms preserving both spatial (channel) and spectral information
 
-Progressive dimension reduction with non-linearity and regularization:
+### 8. **Pre-Trained Swin Transformer Encoder**
+The model leverages a pretrained Swin Transformer V2 (Tiny variant) originally trained on ImageNet-1K to process MEG spectrograms as visual data to extracts hierarchical visual features from spectrograms using transfer learning.
+#### Key Features
+- **Frozen backbone**: The Swin V2 model weights remain fixed, utilizing learned visual representations
+- **Input preprocessing**: Grayscale spectrograms are converted to RGB format (256×256 pixels)
+- **Feature extraction**: Produces 768-dimensional embeddings per channel
+- **Trainable projection**: Maps 768 → 256 → 128 dimensions with GELU activation and dropout (0.1)
+- **Channel aggregation**: Average pooling across all MEG sensors produces a unified 128-dimensional representation
+
+### 9. **Classifier**
+A Fully Connected (FC) network with progressive dimension reduction, non-linearity, and regularization:
 ```
 Input (B, D_N)
     ↓
@@ -137,16 +155,15 @@ Dropout(0.15)
     ↓
 Linear(D_N/2 → 1)
     ↓
-Output (B, 1) - Binary classification logit
+Output (B, 1) - Single logit for binary classification
 ```
 
-### 8. **Output**
-
+### 10. **Output**
 - **Binary Classification**: Speech vs No-Speech
 - **Format**: Single logit per sample (apply sigmoid for probability)
 
-## Complete Data Flow
-
+## Data Flow
+### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention
 ```mermaid
 graph LR
     A[MEG Input<br/>B,C,T] --> B[Spatial Attention<br/>B,C,T]
@@ -165,9 +182,26 @@ graph LR
     M --> N[Output<br/>Speech/No-Speech]
 ```
 
+### Time-Freq Swin Transformer Encoder
+```mermaid
+graph LR
+    A[MEG Signals<br/>B, C, T] --> B[Superlets Transform<br/>FASLT 0.5-30 Hz]
+    B --> C[Power Spectrogram<br/>B, C, F, T]
+    C --> D[RGB Conversion<br/>B×C, 3, 256, 256]
+    D --> E[Swin V2 Encoder<br/>Frozen Backbone]
+    E --> F[Visual Features<br/>B×C, 768]
+    F --> G[Feature Projection<br/>768 → 256 → 128]
+    G --> H[Projected Features<br/>B×C, 128]
+    H --> I[Channel Aggregation<br/>Average Pooling]
+    I --> J[Unified Embedding<br/>B, 128]
+    J --> K[Classification Head<br/>Dropout + FC Layers]
+    K --> L[Output Logits<br/>B, 1]
+    L --> M[Speech / No-Speech<br/>Binary Prediction]
+```
+    
 ## Dimension Tracking Example
-
-With `batch_size=32, channels=306, time=200, model_dim=128, N=3`:
+### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention
+With `B=32, C=306, T=200, model_dim=128, N=3`:
 
 ```
 MEG Input:           [32, 306, 200]
@@ -208,6 +242,14 @@ Long skip connections enable:
 
 ### 5. **Activation Functions**
 - **GELU**: Preferred over ReLU for neural signal processing (smoother, better for small signals)
+
+### 6. **Adaptive time-frequency analysis**
+- [Superlets](https://www.nature.com/articles/s41467-020-20539-9) provide optimal resolution across different frequency bands relevant to neural processing
+
+### 7. **Transfer Learning Strategy**
+- Leveraging powerful visual feature extractors trained on large-scale image datasets (pretrained vision transformers) reduces training requirements and improves generalization
+- Adapt efficiently to MEG data with limited training samples
+- Capture complex spatiotemporal patterns in neural signals
 
 ## Hyperparameters
 
@@ -258,6 +300,7 @@ Adam optimizer recommended with:
 - EEGNet: https://arxiv.org/abs/1611.08024
 - Attention is All You Need: https://arxiv.org/abs/1706.03762
 - Deep Residual Learning: https://arxiv.org/abs/1512.03385
+- Time-frequency super-resolution with superlets: https://www.nature.com/articles/s41467-020-20539-9
 
 ## How to cite
 * **F. Afdideh**, et al., “Fused Multi-Branch Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention for Language Decoding from MEG: Application for BCI Systems,” in preparation.
