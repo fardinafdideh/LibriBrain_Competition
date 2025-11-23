@@ -20,7 +20,7 @@ The model's primary objective in the [LibriBrain Competition 2025](https://neura
 ## Architectures Diagrams
 ### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet)
 This model combines residual multi-scale CNN with BiLSTM and multi-head dual attention mechanisms:
-![](/fig/ArchitectureDiagram_MultiScale.png)
+![](/fig/ResMS-CNN-BiLSTM-MH-DANet.png)
 
 #### Key Components
 ##### 1. **Input Processing**
