@@ -1,10 +1,10 @@
-# Fused Multi-Branch Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention for Language Decoding from MEG: Application for BCI Systems
+# Fused Multi-Branch Multi-Domain Residual Multi-Scale CNN BiLSTM Multi-Head Attention Swin Transformer for Language Decoding from MEG: Application for BCI Systems
 
 ## Overview
 ![](https://neural-processing-lab.github.io/2025-libribrain-competition/images/sherlock1.gif)
 
 This repository details the implementation of a hybrid Deep Learning (DL) architecture designed for Magnetoencephalography (MEG) signal processing and decoding in the [LibriBrain Competition 2025](https://neural-processing-lab.github.io/2025-libribrain-competition/).
-The model, referred to as the **Fused Multi-Path/Branch (temporal/spectral/temporal-spectral, ...) Residual Multi-Scale Convolutional Neural Network (CNN) Bidirectional Long Short-Term Memory (BiLSTM) Multi-Head with Dual Attention (spatial/temporal)**, is built for signal processing and decoding tasks with substantial societal impact on Brain-Computer Interface (BCI) systems.
+The model, referred to as the **Fused Multi-Path/Branch Multi-Domain (temporal/spectral/temporal-spectral, ...) Residual Multi-Scale Convolutional Neural Network (CNN) Bidirectional Long Short-Term Memory (BiLSTM) Multi-Head with Dual Attention (spatial/temporal) Swin Transformer Encoder (to extract embeddings from Time-Freq representations)**, is built for signal processing and decoding tasks with substantial societal impact on Brain-Computer Interface (BCI) systems.
 The model's primary objective in the [LibriBrain Competition 2025](https://neural-processing-lab.github.io/2025-libribrain-competition/) is to decode language from MEG recordings of brain activity during a listening session, addressing core BCI tasks such as:
 
 1) [Speech Detection](https://neural-processing-lab.github.io/2025-libribrain-competition/tracks/): speech vs. non-speech (silence) events (binary task);
@@ -17,7 +17,10 @@ The model's primary objective in the [LibriBrain Competition 2025](https://neura
 1) Rank 27/53 in [Speech Detection](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/speech_detection_standard/)
 2) Rank 18/30 in [Phoneme Classification](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/phoneme_classification_standard/)
 
-## Architectures Diagrams
+## Multi-Branch Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet) + Time-Freq Swin Transformer Encoder Network (TF-STENet) + Filter Bank Dual-Branch Attention-based Frequency Domain Network (FB-DB-AFDNet)
+![](/fig/FB-DB-AFDNet+ResMS-CNN-BiLSTM-MH-DANet+TF-STENet.png)
+
+## Single-Branch Architectures
 ### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet)
 This model combines residual multi-scale CNN with BiLSTM and multi-head dual attention mechanisms:
 ![](/fig/ResMS-CNN-BiLSTM-MH-DANet.png)
