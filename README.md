@@ -128,9 +128,9 @@ Output (B, 1) - Single logit for binary classification
 - **Binary Classification**: Speech vs No-Speech
 - **Format**: Single logit per sample (apply sigmoid for probability)
   
-### Time-Freq Swin Transformer Encoder
+### Time-Freq Swin Transformer Encoder Network (TF-STENet)
 This model architecture combines adaptive time-frequency representations with pre-trained vision transformer encoders:
-![](/fig/TimeFreqSwinTransformerEncoder.png)
+![](/fig/TF-STENet.png)
 
 #### Key Components
 ##### 1. **Spectrogram**
@@ -203,7 +203,7 @@ graph LR
     M --> N[Output<br/>Speech/No-Speech]
 ```
 
-### Time-Freq Swin Transformer Encoder
+### Time-Freq Swin Transformer Encoder Network (TF-STENet)
 ```mermaid
 graph LR
     A[MEG Signals<br/>B, C, T] --> B[Superlets Transform<br/>FASLT 0.5-30 Hz]
