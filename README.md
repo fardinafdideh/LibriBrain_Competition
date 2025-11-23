@@ -22,59 +22,44 @@ The model's primary objective in the [LibriBrain Competition 2025](https://neura
 This model combines residual multi-scale CNN with BiLSTM and multi-head dual attention mechanisms:
 ![](/fig/ArchitectureDiagram_MultiScale.png)
 
-### Time-Freq Swin Transformer Encoder
-This model architecture combines adaptive time-frequency representations with pre-trained vision transformer encoders:
-![](/fig/TimeFreqSwinTransformerEncoder.png)
-
-## Performance Monitoring 
-Performance logs on [Weights & Biases](https://wandb.ai/fardinafdideh-ki/projects) (an AI developer platform):
-
-### [Speech Detection](https://wandb.ai/fardinafdideh-ki/libribrain-experiments/workspace?nw=nwuserfardinafdideh)
-![](/fig/speechDetectionPerf.png)
-![](/fig/speechDetectionConfusion.png)
-
-### [Phoneme Classification](https://wandb.ai/fardinafdideh-ki/libribrain-phoneme-trainTestWithVal_ChannelSpatialAttentionReductionKernelSize/workspace?nw=nwuserfardinafdideh)
-![](/fig/PhonemeClassifPerf.png)
-![](/fig/PhonemeClassifConfusion.png)
-
-## Key Components
-
-### 1. **Input Processing**
+#### Key Components
+##### 1. **Input Processing**
 - **Input Shape**: `(Batch, Channels, Time)` where:
   - `Batch`: Number of samples
   - `Channels`: Number of MEG sensors (e.g., 306 for Neuromag/Elekta systems)
   - `Time`: Temporal sequence length (e.g., 200 time points)
 
-### 2. **Spatial/Channel Attention Module**
-- **Purpose**: Identify and focus on the most relevant MEG channels for speech detection
-- **Function**: Learns channel-wise importance weights
+##### 2. **Spatial/Channel Attention Module**
+- **Purpose**: Identify and focus on the most relevant MEG channels for speech detection (improves SNR)
+- **Function**: Learns channel-wise importance weights/scores 
 - **Output**: Weighted MEG signals emphasizing informative sensors
+- **Architecture**: Uses Squeeze-and-Excitation (SE) blocks with Global Average Pooling (GAP)
 - **Why it matters**: Not all MEG sensors are equally informative for speech - some are positioned over motor cortex, others over auditory cortex, etc.
 
-### 3. **Multi-Scale CNN Blocks (N blocks in series)**
+##### 3. **Multi-Scale CNN Attention Module (N blocks in series)**
 
-Each Multi-Scale CNN block contains some (here three) parallel processing scales with different temporal receptive fields:
+Each Multi-Scale CNN block contains some (here three) parallel processing scales with different temporal receptive fields (kernel sizes):
 
-#### Scale Structure (per block):
+###### Scale Structure (per block):
 ```
 Scale 1 (K=5):  Conv1d(kernel=5)  → BatchNorm1d → GELU
 Scale 2 (K=13): Conv1d(kernel=13) → BatchNorm1d → GELU  
 Scale 3 (K=25): Conv1d(kernel=25) → BatchNorm1d → GELU
 ```
 
-#### Multi-Scale Design Rationale:
+###### Multi-Scale Design Rationale:
 - **K=5** (~20ms): Captures **phonetic features** - short-term acoustic patterns
 - **K=13** (~52ms): Captures **syllabic patterns** - medium-term linguistic units
 - **K=25** (~100ms): Captures **prosodic information** - longer-term intonation patterns
 
-#### Processing Flow:
+###### Processing Flow:
 1. **Parallel Processing**: Input is processed simultaneously through all three scales
 2. **Concatenation**: Scale outputs are concatenated along the channel dimension:
    - `[B, D/3, T] + [B, D/3, T] + [B, D/3, T] → [B, D, T]`
 3. **Dropout Regularization**: Applied after concatenation (rate = 0.15 for CNN layers)
 4. **Output**: Multi-scale feature representation flows to the next block
 
-#### Progressive Dimension Expansion:
+###### Progressive Dimension Expansion:
 Blocks progressively expand feature dimensions:
 ```
 Block 1: D₁ = model_dim / 2^(N-1)
@@ -88,7 +73,7 @@ For example, with `model_dim=128` and `N=3`:
 - Block 2: 64 dimensions  
 - Block 3: 128 dimensions
 
-### 4. **Long Residual Connection**
+##### 4. **Long Residual Connection**
 
 A critical skip connection that:
 - **Starts**: After Spatial Attention output
@@ -99,51 +84,32 @@ A critical skip connection that:
   - Maintains direct path for information from input to deep layers
 - **Adaptive Projection**: If dimensions mismatch, a 1×1 convolution projects the residual to match
 
-### 5. **Reshape & Normalization**
-
+##### 5. **Reshape & Normalization**
 - **Permute**: Transforms from CNN format `(B, C, T)` to RNN format `(B, T, C)`
 - **Layer Normalization**: Stabilizes activations before temporal processing
 
-### 6. **Temporal Processing Pipeline**
-
-#### Bidirectional LSTM
+##### 6. **Temporal Processing Pipeline**
+###### Bidirectional LSTM
 - **Purpose**: Model temporal sequential dependencies in both forward and backward directions
 - **Architecture**: 
   - Multiple stacked layers (typically 2-3)
   - Hidden size: `D_N/2` per direction (total output: `D_N`)
   - Dropout between layers for regularization
 - **Why bidirectional**: Speech context flows both ways - future phonemes influence current perception
-
-#### Temporal Attention (Multi-head Self-Attention)
+  
+###### Temporal Attention (Multi-head Self-Attention)
 - **Purpose**: Learn which time steps are most important for classification
 - **Configuration**: 8 attention heads
 - **Mechanism**: Computes attention weights across the time dimension
 - **Benefit**: Adaptively focuses on informative temporal segments (e.g., speech onset, vowels)
 
-#### Global Average Pooling
+###### Global Average Pooling
 - **Function**: Converts `(B, T, D_N)` to `(B, D_N)`
 - **Advantage**: More robust
 - **Operation**: `output = mean(sequence, dim=time)`
 
-### 7. **Spectrogram**
-Converts raw MEG signals into adaptive time-frequency representations using Superlets, which applies the Fractional Adaptive Superlet Transform (FASLT).
-#### Key Features
-- **Frequency range**: 0.5-30 Hz (covering delta, theta, alpha, and beta bands)
-- **Adaptive resolution**: Low frequencies (0.5-8 Hz) use high frequency resolution to capture slow oscillations, while high frequencies (8-30 Hz) use high temporal resolution for fast dynamics
-- **Multi-order analysis**: Orders 1-16 provide multi-scale spectral decomposition
-- **Output**: Log-power spectrograms preserving both spatial (channel) and spectral information
-
-### 8. **Pre-Trained Swin Transformer Encoder**
-The model leverages a pretrained Swin Transformer V2 (Tiny variant) originally trained on ImageNet-1K to process MEG spectrograms as visual data to extracts hierarchical visual features from spectrograms using transfer learning.
-#### Key Features
-- **Frozen backbone**: The Swin V2 model weights remain fixed, utilizing learned visual representations
-- **Input preprocessing**: Grayscale spectrograms are converted to RGB format (256×256 pixels)
-- **Feature extraction**: Produces 768-dimensional embeddings per channel
-- **Trainable projection**: Maps 768 → 256 → 128 dimensions with GELU activation and dropout (0.1)
-- **Channel aggregation**: Average pooling across all MEG sensors produces a unified 128-dimensional representation
-
-### 9. **Classifier**
-A Fully Connected (FC) network with progressive dimension reduction, non-linearity, and regularization:
+##### 7. **Multi-layer Decision Network (Classifier)**
+A Fully Connected (FC) network with progressive dimension reduction, non-linearity, and regularization (to prevent overfitting):
 ```
 Input (B, D_N)
     ↓
@@ -158,10 +124,65 @@ Linear(D_N/2 → 1)
 Output (B, 1) - Single logit for binary classification
 ```
 
-### 10. **Output**
+##### 8. **Output**
 - **Binary Classification**: Speech vs No-Speech
 - **Format**: Single logit per sample (apply sigmoid for probability)
+  
+### Time-Freq Swin Transformer Encoder
+This model architecture combines adaptive time-frequency representations with pre-trained vision transformer encoders:
+![](/fig/TimeFreqSwinTransformerEncoder.png)
 
+#### Key Components
+##### 1. **Spectrogram**
+Converts raw MEG signals into adaptive time-frequency representations using Superlets, which applies the Fractional Adaptive Superlet Transform (FASLT).
+###### Key Features
+- **Frequency range**: 0.5-30 Hz (covering delta, theta, alpha, and beta bands)
+- **Adaptive resolution**: Low frequencies (0.5-8 Hz) use high frequency resolution to capture slow oscillations, while high frequencies (8-30 Hz) use high temporal resolution for fast dynamics
+- **Multi-order analysis**: Orders 1-16 provide multi-scale spectral decomposition
+- **Output**: Log-power spectrograms preserving both spatial (channel) and spectral information
+
+##### 2. **Pre-Trained Swin Transformer Encoder**
+The model leverages a pretrained Swin Transformer V2 (Tiny variant) originally trained on ImageNet-1K to process MEG spectrograms as visual data to extracts hierarchical visual features from spectrograms using transfer learning.
+###### Key Features
+- **Frozen backbone**: The Swin V2 model weights remain fixed, utilizing learned visual representations
+- **Input preprocessing**: Grayscale spectrograms are converted to RGB format (256×256 pixels)
+- **Feature extraction**: Produces 768-dimensional embeddings per channel
+- **Trainable projection**: Maps 768 → 256 → 128 dimensions with GELU activation and dropout (0.1)
+- **Channel aggregation**: Average pooling across all MEG sensors produces a unified 128-dimensional representation
+  
+### Filter Bank Dual-Branch Attention-based Frequency Domain Network ([FB-DB-AFDNet](https://ieeexplore.ieee.org/document/11231326))
+This model architecture incorporates a filter bank approach to process multiple frequency subbands, using DB-AFDNets, in parallel.
+The DB-AFDNet processes complex frequency-domain representations of neural signals, obtained using FFT Transform, through a dual-branch framework, treating the real and imaginary (or magnitude and phase) components separately in different branches, rather than concatenating them in a single branch.
+The DB-AFDNet uses inter-branch attentional similarity, intra-branch orthogonality, and attention (spatial and multi-scale adaptive) modules to extract shared and unique features of the spectral components and assigns spatial and temporal attention:
+![](/fig/FB-DB-AFDNet.png)
+
+#### Key Components
+##### 1. **Attention**
+- Adaptively focuses on spatially and spectrally important features
+- **Channel-wise Attention**: Recalibrates multi-channel data to improve signal-to-noise ratio by learning spatial/channel importance weights/scores
+- **Multi-scale Adaptive Attention**: Captures frequency responses across multiple scales using grouped convolutions with varying kernel sizes (receptive fields)
+
+##### 2. **Dual-branch Architecture**
+- Effectively utilizes both real and imaginary (or magnitude and phase) components of frequency representations
+  
+##### 3. **Representation Constraint Learning**
+- **Similarity Constraint**: Enforces consistency between branches to learn shared features.
+- **Orthogonality Constraint**: Disentangles shared (inter-branch) and unique (branch-specific) information within each branch.
+
+##### 4. **Filter Bank Extension**
+- **Multi-band Processing**: Captures frequency-specific neural patterns across different brain rhythms by applying multiple DB-AFDNet subnetworks to different frequency subbands.
+  
+## Performance Monitoring 
+Performance logs on [Weights & Biases](https://wandb.ai/fardinafdideh-ki/projects) (an AI developer platform):
+
+### [Speech Detection (Binary)](https://wandb.ai/fardinafdideh-ki/libribrain-experiments/workspace?nw=nwuserfardinafdideh)
+![](/fig/speechDetectionPerf.png)
+![](/fig/speechDetectionConfusion.png)
+
+### [Phoneme Classification (39-Class)](https://wandb.ai/fardinafdideh-ki/libribrain-phoneme-trainTestWithVal_ChannelSpatialAttentionReductionKernelSize/workspace?nw=nwuserfardinafdideh)
+![](/fig/PhonemeClassifPerf.png)
+![](/fig/PhonemeClassifConfusion.png)
+  
 ## Data Flow
 ### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention
 ```mermaid
@@ -198,7 +219,56 @@ graph LR
     K --> L[Output Logits<br/>B, 1]
     L --> M[Speech / No-Speech<br/>Binary Prediction]
 ```
+### Filter Bank Dual-Branch Attention-based Frequency Domain Network (FB-DB-AFDNet)
+#### FB-DB-AFDNet
+```mermaid
+graph LR
+    A[Raw MEG Signals<br/>Multi-channel Time Series] --> B[Filter Bank Decomposition]
     
+    B --> C1[Subband 1<br/>f₁-f₂ Hz]
+    B --> C2[Subband 2<br/>f₃-f₄ Hz]
+    B --> C3[...]
+    B --> CN[Subband N<br/>fₙ₋₁-fₙ Hz]
+    
+    C1 --> D1[DB-AFDNet 1<br/>Subnetwork]
+    C2 --> D2[DB-AFDNet 2<br/>Subnetwork]
+    C3 --> D3[...]
+    CN --> DN[DB-AFDNet N<br/>Subnetwork]
+    
+    D1 --> F[Fusion]
+    D2 --> F
+    D3 --> F
+    DN --> F
+    
+    F --> G[Multi-layer Decision Network<br/>FC + Dropout + LayerNorm]
+```
+#### DB-AFDNet
+```mermaid
+graph LR
+    A[Subband MEG Signal] --> B[FFT]
+    B --> C[Complex Frequency Features]
+    
+    C --> D1[Real Part]
+    C --> D2[Imaginary Part]
+    
+    D1 --> E1[Attention 1<br/>Channel-wise + Multi-scale]
+    D2 --> E2[Attention 2<br/>Channel-wise + Multi-scale]
+    
+    E1 --> F1[Orthogonality Constraint 1]
+    E1 --> F2[Similarity Constraint]
+
+    E2 --> F3[Orthogonality Constraint 2]
+    E2 --> F2[Similarity Constraint]
+
+    F2 --> F1[Orthogonality Constraint 1]
+    F2 --> F3[Orthogonality Constraint 2]
+
+    F1 --> G[Fusion]
+    F3 --> G[Fusion]
+    
+    G --> H[Multi-layer Decision Network<br/>FC + Dropout + LayerNorm]  
+```
+
 ## Dimension Tracking Example
 ### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention
 With `B=32, C=306, T=200, model_dim=128, N=3`:
@@ -296,11 +366,12 @@ Adam optimizer recommended with:
    - Remove bad channels/sensors
 
 ## References
-- LibriBrain Competition 2025: https://neural-processing-lab.github.io/2025-libribrain-competition/
-- EEGNet: https://arxiv.org/abs/1611.08024
-- Attention is All You Need: https://arxiv.org/abs/1706.03762
-- Deep Residual Learning: https://arxiv.org/abs/1512.03385
-- Time-frequency super-resolution with superlets: https://www.nature.com/articles/s41467-020-20539-9
+- [LibriBrain Competition 2025](https://neural-processing-lab.github.io/2025-libribrain-competition/)
+- [EEGNet](https://arxiv.org/abs/1611.08024)
+- [Attention is All You Need](https://arxiv.org/abs/1706.03762)
+- [Deep Residual Learning](https://arxiv.org/abs/1512.03385)
+- [Time-frequency super-resolution with superlets](https://www.nature.com/articles/s41467-020-20539-9)
+- [Filter Bank Dual-Branch Attention-based Frequency Domain Network (FB-DB-AFDNet)](https://ieeexplore.ieee.org/document/11231326)
 
 ## How to cite
 * **F. Afdideh**, et al., “Fused Multi-Branch Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention for Language Decoding from MEG: Application for BCI Systems,” in preparation.
