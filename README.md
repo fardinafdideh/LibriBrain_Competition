@@ -18,7 +18,7 @@ The model's primary objective in the [LibriBrain Competition 2025](https://neura
 2) Rank 18/30 in [Phoneme Classification](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/phoneme_classification_standard/)
 
 ## Architectures Diagrams
-### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention
+### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet)
 This model combines residual multi-scale CNN with BiLSTM and multi-head dual attention mechanisms:
 ![](/fig/ArchitectureDiagram_MultiScale.png)
 
@@ -184,7 +184,7 @@ Performance logs on [Weights & Biases](https://wandb.ai/fardinafdideh-ki/project
 ![](/fig/PhonemeClassifConfusion.png)
   
 ## Data Flow
-### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention
+### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet)
 ```mermaid
 graph LR
     A[MEG Input<br/>B,C,T] --> B[Spatial Attention<br/>B,C,T]
@@ -270,7 +270,7 @@ graph LR
 ```
 
 ## Dimension Tracking Example
-### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention
+### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet)
 With `B=32, C=306, T=200, model_dim=128, N=3`:
 
 ```
