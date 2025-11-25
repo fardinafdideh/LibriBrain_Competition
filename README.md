@@ -377,4 +377,4 @@ Adam optimizer recommended with:
 - [Filter Bank Dual-Branch Attention-based Frequency Domain Network (FB-DB-AFDNet)](https://ieeexplore.ieee.org/document/11231326)
 
 ## How to cite
-* **F. Afdideh**, et al., “Fused Multi-Branch Multi-Domain Residual Multi-Scale CNN BiLSTM Multi-Head Attention Swin Transformer for Language Decoding from MEG: Application for BCI Systems,” in preparation.
+* **F. Afdideh**, et al., “Fused Multi-Branch Multi-Domain Residual Multi-Scale CNN BiLSTM Multi-Head Attention Swin Transformer for Language Decoding from MEG: Application for BCI Systems,” [in preparation](https://github.com/fardinafdideh/LibriBrain).
