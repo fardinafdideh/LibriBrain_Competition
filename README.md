@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/Competition-LibriBrain_2025-green.svg)](https://neural-processing-lab.github.io/2025-libribrain-competition/)
 ![](https://img.shields.io/badge/Framework-PyTorch-EE4C2C.svg)
 
-A Hybrid End-to-End Deep Learning Architecture for Decoding Language from Brain Activity.
+A Hybrid End-to-End Deep Learning Architecture for Decoding Language from Brain Activity, with Specific Applications in BCI Systems.
 
 ## 📖 Overview
 This repository details the implementation of a hybrid Deep Learning (DL) architecture designed for Magnetoencephalography (MEG) signal ([LibriBrain dataset](https://arxiv.org/abs/2506.02098)) processing and decoding in the [LibriBrain Competition 2025](https://arxiv.org/abs/2506.10165), which addresses the complex challenge of mapping non-invasive brain recordings to speech events.
