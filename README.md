@@ -1,9 +1,13 @@
-# Fused Multi-Branch Multi-Domain Residual Multi-Scale CNN BiLSTM Multi-Head Attention Swin Transformer for Language Decoding from MEG: Application for BCI Systems
+# 🧠 Fused Multi-Branch Multi-Domain Residual Multi-Scale CNN BiLSTM Multi-Head Attention Swin Transformer for End-to-End Language Decoding from MEG: Application for BCI Systems
+[![](https://img.shields.io/badge/Modality-MEG-orange.svg)](https://arxiv.org/abs/2506.02098)
+[![](https://img.shields.io/badge/Task-Speech_Detection%20%7C%20Phoneme_Classification-blue.svg)](https://arxiv.org/abs/2506.10165)
+[![](https://img.shields.io/badge/Competition-LibriBrain_2025-green.svg)](https://neural-processing-lab.github.io/2025-libribrain-competition/)
+![](https://img.shields.io/badge/Framework-PyTorch-EE4C2C.svg)
 
-## Overview
-![](https://neural-processing-lab.github.io/2025-libribrain-competition/images/sherlock1.gif)
+A Hybrid End-to-End Deep Learning Architecture for Decoding Language from Brain Activity.
 
-This repository details the implementation of a hybrid Deep Learning (DL) architecture designed for Magnetoencephalography (MEG) signal processing and decoding in the [LibriBrain Competition 2025](https://neural-processing-lab.github.io/2025-libribrain-competition/).
+## 📖 Overview
+This repository details the implementation of a hybrid Deep Learning (DL) architecture designed for Magnetoencephalography (MEG) signal ([LibriBrain dataset](https://arxiv.org/abs/2506.02098)) processing and decoding in the [LibriBrain Competition 2025](https://arxiv.org/abs/2506.10165), which addresses the complex challenge of mapping non-invasive brain recordings to speech events.
 The model, referred to as the **Fused Multi-Path/Branch Multi-Domain (temporal/spectral/temporal-spectral, ...) Residual Multi-Scale Convolutional Neural Network (CNN) Bidirectional Long Short-Term Memory (BiLSTM) Multi-Head with Dual Attention (spatial/temporal) Swin Transformer Encoder (to extract embeddings from Time-Freq representations)**, is built for signal processing and decoding tasks with substantial societal impact on Brain-Computer Interface (BCI) systems.
 The model's primary objective in the [LibriBrain Competition 2025](https://neural-processing-lab.github.io/2025-libribrain-competition/) is to decode language from MEG recordings of brain activity during a listening session, addressing core BCI tasks such as:
 
@@ -13,17 +17,71 @@ The model's primary objective in the [LibriBrain Competition 2025](https://neura
 2) [Phoneme Classification](https://neural-processing-lab.github.io/2025-libribrain-competition/tracks/): 39 Phonems (multi-class task).
 ![Description of GIF](https://neural-processing-lab.github.io/2025-libribrain-competition/images/sherlock4.gif)
 
-## Competition Leaderboard 
+## 📊 Competition 2025 Leaderboard 
+While the complete multi-branch architecture is actively being engineered and tuned, a subcomponent has yielded the following preliminary results:
 1) Rank 27/53 in [Speech Detection](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/speech_detection_standard/)
 2) Rank 18/30 in [Phoneme Classification](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/phoneme_classification_standard/)
 
-## Multi-Branch Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet) + Time-Freq Swin Transformer Encoder Network (TF-STENet) + Filter Bank Dual-Branch Attention-based Frequency Domain Network (FB-DB-AFDNet)
+## 🏗️ Multi-Branch Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet) + Time-Freq Swin Transformer Encoder Network (TF-STENet) + Filter Bank Dual-Branch Attention-based Frequency Domain Network (FB-DB-AFDNet)
+The model fuses distinct, highly specialized following branches of neural networks into a unified decision framework:
+
+```mermaid
+graph LR
+    meg[MEG]
+    subgraph "Temporal"
+    A[ResMS-CNN-BiLSTM-MH-DANet] 
+    end
+    subgraph "Time-Frequency"
+    tmpfreq[TF-STENet] 
+    end
+    subgraph "Frequency"
+    freq[FB-DB-AFDNet] 
+    end
+    meg --> A & tmpfreq & freq
+    A & tmpfreq & freq --> F[Fusion]
+    F --> clf[Classifier]
+```
+
+### Temporal Branch: ResMS-CNN-BiLSTM-MH-DANet
+This branch is designed to capture linguistic units of varying lengths.
+- Multi-Scale Extraction: Utilizes parallel convolution branches with different kernel sizes.
+- Dual Attention:
+  - Spatial Attention: Identifies informative MEG sensors (Squeeze-and-Excitation).
+  - Temporal Attention: Multi-head self-attention to focus on relevant segments.
+- Long Residual Connections: Preserves gradient flow across deep layers to prevent vanishing gradients.
+### Time-Frequency Branch: TF-STENet
+This branch leverages Transfer Learning by treating the MEG signal as a visual problem.
+- Superlets Transform: Applies Fractional Adaptive Superlet Transform (FASLT) to generate high-resolution time-frequency representations.
+- Vision Transformer: Uses a pre-trained Swin Transformer V2 Tiny to extract hierarchical visual features from the spectrograms.
+### Frequency Branch: FB-DB-AFDNet
+- Dual-Branch Processing: Separates Real and Imaginary (or Magnitude and Phase) components of the FFT.
+- Constraint Learning: Applies Orthogonality Constraints (to disentangle unique features) and Similarity Constraints between the dual branches.
+
 ![](/fig/FB-DB-AFDNet+ResMS-CNN-BiLSTM-MH-DANet+TF-STENet.png)
 
-## Single-Branch Architectures
+## 🔬 Single-Branch Architectures
 ### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet)
 This model combines residual multi-scale CNN with BiLSTM and multi-head dual attention mechanisms:
+
 ![](/fig/ResMS-CNN-BiLSTM-MH-DANet.png)
+
+```mermaid
+graph LR
+    A[MEG Input<br/>B,C,T] --> B[Spatial Attention<br/>B,C,T]
+    B --> C[MS-CNN Block 1<br/>B,D₁,T]
+    C --> D[MS-CNN Block 2<br/>B,D₂,T]
+    D --> E[...]
+    E --> F[MS-CNN Block N<br/>B,D_N,T]
+    F --> G((+))
+    B -.Long Residual.-> G
+    G --> H[Permute<br/>B,T,D_N]
+    H --> I[Layer Norm<br/>B,T,D_N]
+    I --> J[Bi-LSTM<br/>B,T,D_N]
+    J --> K[Temporal Attention<br/>B,T,D_N]
+    K --> L[Global Avg Pool<br/>B,D_N]
+    L --> M[Classifier<br/>B,1]
+    M --> N[Output<br/>Speech/No-Speech]
+```
 
 #### Key Components
 ##### 1. **Input Processing**
@@ -133,7 +191,24 @@ Output (B, 1) - Single logit for binary classification
   
 ### Time-Freq Swin Transformer Encoder Network (TF-STENet)
 This model architecture combines adaptive time-frequency representations with pre-trained vision transformer encoders:
+
 ![](/fig/TF-STENet.png)
+
+```mermaid
+graph LR
+    A[MEG Signals<br/>B, C, T] --> B[Superlets Transform<br/>FASLT 0.5-30 Hz]
+    B --> C[Power Spectrogram<br/>B, C, F, T]
+    C --> D[RGB Conversion<br/>B×C, 3, 256, 256]
+    D --> E[Swin V2 Encoder<br/>Frozen Backbone]
+    E --> F[Visual Features<br/>B×C, 768]
+    F --> G[Feature Projection<br/>768 → 256 → 128]
+    G --> H[Projected Features<br/>B×C, 128]
+    H --> I[Channel Aggregation<br/>Average Pooling]
+    I --> J[Unified Embedding<br/>B, 128]
+    J --> K[Classification Head<br/>Dropout + FC Layers]
+    K --> L[Output Logits<br/>B, 1]
+    L --> M[Speech / No-Speech<br/>Binary Prediction]
+```
 
 #### Key Components
 ##### 1. **Spectrogram**
@@ -157,72 +232,9 @@ The model leverages a pretrained Swin Transformer V2 (Tiny variant) originally t
 This model architecture incorporates a filter bank approach to process multiple frequency subbands, using DB-AFDNets, in parallel.
 The DB-AFDNet processes complex frequency-domain representations of neural signals, obtained using FFT Transform, through a dual-branch framework, treating the real and imaginary (or magnitude and phase) components separately in different branches, rather than concatenating them in a single branch.
 The DB-AFDNet uses inter-branch attentional similarity, intra-branch orthogonality, and attention (spatial and multi-scale adaptive) modules to extract shared and unique features of the spectral components and assigns spatial and temporal attention:
+
 ![](/fig/FB-DB-AFDNet.png)
 
-#### Key Components
-##### 1. **Attention**
-- Adaptively focuses on spatially and spectrally important features
-- **Channel-wise Attention**: Recalibrates multi-channel data to improve signal-to-noise ratio by learning spatial/channel importance weights/scores
-- **Multi-scale Adaptive Attention**: Captures frequency responses across multiple scales using grouped convolutions with varying kernel sizes (receptive fields)
-
-##### 2. **Dual-branch Architecture**
-- Effectively utilizes both real and imaginary (or magnitude and phase) components of frequency representations
-  
-##### 3. **Representation Constraint Learning**
-- **Similarity Constraint**: Enforces consistency between branches to learn shared features.
-- **Orthogonality Constraint**: Disentangles shared (inter-branch) and unique (branch-specific) information within each branch.
-
-##### 4. **Filter Bank Extension**
-- **Multi-band Processing**: Captures frequency-specific neural patterns across different brain rhythms by applying multiple DB-AFDNet subnetworks to different frequency subbands.
-  
-## Performance Monitoring 
-Performance logs on [Weights & Biases](https://wandb.ai/fardinafdideh-ki/projects) (an AI developer platform):
-
-### [Speech Detection (Binary)](https://wandb.ai/fardinafdideh-ki/libribrain-experiments/workspace?nw=nwuserfardinafdideh)
-![](/fig/speechDetectionPerf.png)
-![](/fig/speechDetectionConfusion.png)
-
-### [Phoneme Classification (39-Class)](https://wandb.ai/fardinafdideh-ki/libribrain-phoneme-trainTestWithVal_ChannelSpatialAttentionReductionKernelSize/workspace?nw=nwuserfardinafdideh)
-![](/fig/PhonemeClassifPerf.png)
-![](/fig/PhonemeClassifConfusion.png)
-  
-## Data Flow
-### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet)
-```mermaid
-graph LR
-    A[MEG Input<br/>B,C,T] --> B[Spatial Attention<br/>B,C,T]
-    B --> C[MS-CNN Block 1<br/>B,D₁,T]
-    C --> D[MS-CNN Block 2<br/>B,D₂,T]
-    D --> E[...]
-    E --> F[MS-CNN Block N<br/>B,D_N,T]
-    F --> G((+))
-    B -.Long Residual.-> G
-    G --> H[Permute<br/>B,T,D_N]
-    H --> I[Layer Norm<br/>B,T,D_N]
-    I --> J[Bi-LSTM<br/>B,T,D_N]
-    J --> K[Temporal Attention<br/>B,T,D_N]
-    K --> L[Global Avg Pool<br/>B,D_N]
-    L --> M[Classifier<br/>B,1]
-    M --> N[Output<br/>Speech/No-Speech]
-```
-
-### Time-Freq Swin Transformer Encoder Network (TF-STENet)
-```mermaid
-graph LR
-    A[MEG Signals<br/>B, C, T] --> B[Superlets Transform<br/>FASLT 0.5-30 Hz]
-    B --> C[Power Spectrogram<br/>B, C, F, T]
-    C --> D[RGB Conversion<br/>B×C, 3, 256, 256]
-    D --> E[Swin V2 Encoder<br/>Frozen Backbone]
-    E --> F[Visual Features<br/>B×C, 768]
-    F --> G[Feature Projection<br/>768 → 256 → 128]
-    G --> H[Projected Features<br/>B×C, 128]
-    H --> I[Channel Aggregation<br/>Average Pooling]
-    I --> J[Unified Embedding<br/>B, 128]
-    J --> K[Classification Head<br/>Dropout + FC Layers]
-    K --> L[Output Logits<br/>B, 1]
-    L --> M[Speech / No-Speech<br/>Binary Prediction]
-```
-### Filter Bank Dual-Branch Attention-based Frequency Domain Network (FB-DB-AFDNet)
 #### FB-DB-AFDNet
 ```mermaid
 graph LR
@@ -272,6 +284,33 @@ graph LR
     G --> H[Multi-layer Decision Network<br/>FC + Dropout + LayerNorm]  
 ```
 
+#### Key Components
+##### 1. **Attention**
+- Adaptively focuses on spatially and spectrally important features
+- **Channel-wise Attention**: Recalibrates multi-channel data to improve signal-to-noise ratio by learning spatial/channel importance weights/scores
+- **Multi-scale Adaptive Attention**: Captures frequency responses across multiple scales using grouped convolutions with varying kernel sizes (receptive fields)
+
+##### 2. **Dual-branch Architecture**
+- Effectively utilizes both real and imaginary (or magnitude and phase) components of frequency representations
+  
+##### 3. **Representation Constraint Learning**
+- **Similarity Constraint**: Enforces consistency between branches to learn shared features.
+- **Orthogonality Constraint**: Disentangles shared (inter-branch) and unique (branch-specific) information within each branch.
+
+##### 4. **Filter Bank Extension**
+- **Multi-band Processing**: Captures frequency-specific neural patterns across different brain rhythms by applying multiple DB-AFDNet subnetworks to different frequency subbands.
+  
+## Performance Monitoring 
+Performance logs on [Weights & Biases](https://wandb.ai/fardinafdideh-ki/projects) (an AI developer platform):
+
+### [Speech Detection (Binary)](https://wandb.ai/fardinafdideh-ki/libribrain-experiments/workspace?nw=nwuserfardinafdideh)
+![](/fig/speechDetectionPerf.png)
+![](/fig/speechDetectionConfusion.png)
+
+### [Phoneme Classification (39-Class)](https://wandb.ai/fardinafdideh-ki/libribrain-phoneme-trainTestWithVal_ChannelSpatialAttentionReductionKernelSize/workspace?nw=nwuserfardinafdideh)
+![](/fig/PhonemeClassifPerf.png)
+![](/fig/PhonemeClassifConfusion.png)
+  
 ## Dimension Tracking Example
 ### Residual Multi-Scale CNN BiLSTM Multi-Head with Dual Attention Network (ResMS-CNN-BiLSTM-MH-DANet)
 With `B=32, C=306, T=200, model_dim=128, N=3`:
@@ -370,11 +409,13 @@ Adam optimizer recommended with:
 
 ## References
 - [LibriBrain Competition 2025](https://neural-processing-lab.github.io/2025-libribrain-competition/)
+  - [LibriBrain: Over 50 Hours of Within-Subject MEG to Improve Speech Decoding Methods at Scale](https://arxiv.org/abs/2506.02098)
+  - [The 2025 PNPL Competition: Speech Detection and Phoneme Classification in the LibriBrain Dataset](https://arxiv.org/abs/2506.10165)
 - [EEGNet](https://arxiv.org/abs/1611.08024)
 - [Attention is All You Need](https://arxiv.org/abs/1706.03762)
 - [Deep Residual Learning](https://arxiv.org/abs/1512.03385)
 - [Time-frequency super-resolution with superlets](https://www.nature.com/articles/s41467-020-20539-9)
 - [Filter Bank Dual-Branch Attention-based Frequency Domain Network (FB-DB-AFDNet)](https://ieeexplore.ieee.org/document/11231326)
 
-## How to cite
-* **F. Afdideh**, et al., “Fused Multi-Branch Multi-Domain Residual Multi-Scale CNN BiLSTM Multi-Head Attention Swin Transformer for Language Decoding from MEG: Application for BCI Systems,” [in preparation](https://github.com/fardinafdideh/LibriBrain).
+## 📚 How to cite
+* **F. Afdideh**, et al., “Fused Multi-Branch Multi-Domain Residual Multi-Scale CNN BiLSTM Multi-Head Attention Swin Transformer for Language Decoding from MEG: Application for BCI Systems,” *[in preparation](https://github.com/fardinafdideh/LibriBrain)*.
