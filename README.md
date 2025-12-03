@@ -18,7 +18,7 @@ The model's primary objective in the [LibriBrain Competition 2025](https://neura
 ![Description of GIF](https://neural-processing-lab.github.io/2025-libribrain-competition/images/sherlock4.gif)
 
 ## 📊 Competition 2025 Leaderboard 
-While the complete multi-branch architecture is actively being engineered and tuned, a subcomponent has yielded the following preliminary results:
+While the complete multi-branch architecture is actively being engineered and tuned, a subcomponent has yielded the following preliminary results at the LibriBrain Competition 2025:
 1) Rank 27/53 in [Speech Detection](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/speech_detection_standard/)
 2) Rank 18/30 in [Phoneme Classification](https://neural-processing-lab.github.io/2025-libribrain-competition/leaderboard/phoneme_classification_standard/)
 
